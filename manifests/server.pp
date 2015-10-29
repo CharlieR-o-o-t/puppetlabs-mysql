@@ -20,6 +20,7 @@ class mysql::server (
   $users                   = {},
   $grants                  = {},
   $databases               = {},
+  $version                 = 'default'
 
   # Deprecated parameters
   $enabled                 = undef,

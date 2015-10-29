@@ -19,8 +19,22 @@ class mysql::server::install {
     $install_db_args = "--basedir=${basedir} --datadir=${datadir} --user=${mysqluser}"
   }
 
+  if $::mysql::server::version == 'default' {
+    $installdb_cmd = "mysql_install_db ${install_db_args}"
+  elsif scanf($::mysql::server::version, "%f") >= 5.7
+    $installdb_cmd = "mysqld --initialize --user=${mysqluser}"
+
+    exec { 'mysql_ssl_rsa_setup':
+      command   => "mysql_ssl_rsa_setup",
+      creates   => "${datadir}/mysql/server-key.pem",
+      logoutput => on_failure,
+      path      => '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin',
+      require   => Package['mysql-server'],
+    }
+  }
+
   exec { 'mysql_install_db':
-    command   => "mysql_install_db ${install_db_args}",
+    command   => $installdb_cmd,
     creates   => "${datadir}/mysql",
     logoutput => on_failure,
     path      => '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin',
